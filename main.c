@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "/usr/include/pigpio.h"
+#include <pigpio.h>
 
 int main()
 {
