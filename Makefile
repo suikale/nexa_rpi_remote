@@ -4,7 +4,7 @@ INCLUDE=-I $(BASEPATH)/include
 LIB=-L $(BASEPATH)/lib -lpigpio
 CFLAGS=-Wall
 TARGET=main
-PI_IP=pi@192.168.1.199
+PI_IP=pi@zero.lan
 SSH_PREFIX=ssh $(PI_IP)
 DEPENDS=
 
