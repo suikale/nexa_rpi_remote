@@ -9,10 +9,10 @@
 // GPIO pin connected to antenna
 #define ANT_PIN     2
 // delays is µs
-#define SHORT_DELAY 250
-#define LONG_DELAY  1250
-#define INIT_DELAY  2500
-#define REPEAT_DELAY 10000
+#define SHORT_DELAY 200
+#define LONG_DELAY    5 * SHORT_DELAY
+#define INIT_DELAY   10 * SHORT_DELAY
+#define REPEAT_DELAY 40 * SHORT_DELAY
 
 // payload consists of these bytes
 const uint8_t byte[4][4] = {{0, 1, 0, 1}, {0, 1, 1, 0}, {1, 0, 0, 1}, {1, 0, 1, 0}};
@@ -21,7 +21,7 @@ const uint8_t byte[4][4] = {{0, 1, 0, 1}, {0, 1, 1, 0}, {1, 0, 0, 1}, {1, 0, 1, 
     sends a single bit
     0: 250 µs ON,  250 µs OFF
     1: 250 µs ON, 1250 µs OFF
- init: 250 µs ON, 2500 µs OFF 
+ init: 250 µs ON, 2500 µs OFF
 */
 void send_bit(const uint8_t bit)
 {
@@ -102,7 +102,7 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    send(0, 0, 0, 6);
+    send(1, 0, 0, 6);
 
     return 0;
 }
