@@ -2,17 +2,18 @@
     Crude remote control software
 */
 
-#include <stdio.h>
-#include <unistd.h>
-#include <pigpio.h>
-
+// avr clock, 8 MHz
+#define F_CPU 8000000UL
 // GPIO pin connected to antenna
-#define ANT_PIN     2
+#define ANT_PIN     PB3
 // delays is µs
-#define SHORT_DELAY 200
+#define SHORT_DELAY 250
 #define LONG_DELAY    5 * SHORT_DELAY
 #define INIT_DELAY   10 * SHORT_DELAY
 #define REPEAT_DELAY 40 * SHORT_DELAY
+
+#include <avr/io.h>
+#include <util/delay.h>
 
 // payload consists of these bytes
 const uint8_t byte[4][4] = {{0, 1, 0, 1}, {0, 1, 1, 0}, {1, 0, 0, 1}, {1, 0, 1, 0}};
@@ -25,20 +26,20 @@ const uint8_t byte[4][4] = {{0, 1, 0, 1}, {0, 1, 1, 0}, {1, 0, 0, 1}, {1, 0, 1, 
 */
 void send_bit(const uint8_t bit)
 {
-    gpioWrite(ANT_PIN, 1);
-    usleep(SHORT_DELAY);
-    gpioWrite(ANT_PIN, 0);
+    PORTB |= (1 << ANT_PIN);  // high
+    _delay_us(SHORT_DELAY);
+    PORTB &= ~(1 << ANT_PIN); // low
     if (bit == 0)
     {
-        usleep(SHORT_DELAY);
+        _delay_us(SHORT_DELAY);
     }
     else if (bit == 1)
     {
-        usleep(LONG_DELAY);
+        _delay_us(LONG_DELAY);
     }
     else
     {
-        usleep(INIT_DELAY);
+        _delay_us(INIT_DELAY);
     }
 }
 
@@ -76,31 +77,19 @@ void send(uint8_t state, uint8_t id, uint8_t group, uint8_t repeat)
         send_byte(byte[id & 3]);
 
         // end
-        gpioWrite(ANT_PIN, 1);
-        usleep(SHORT_DELAY);
-        gpioWrite(ANT_PIN, 0);
+        PORTB |= (1 << ANT_PIN);
+        _delay_us(SHORT_DELAY);
+        PORTB &= ~(1 << ANT_PIN);
 
         // add some delay between repeats
-        usleep(REPEAT_DELAY);
+        _delay_us(REPEAT_DELAY);
     }
-}
-
-int setup(void)
-{
-    if (gpioInitialise() < 0 || gpioSetMode(ANT_PIN, PI_OUTPUT) < 0)
-    {
-        return -1;
-    }
-    return 0;
 }
 
 int main(int argc, char** argv)
 {
-    if (setup() < 0)
-    {
-        printf("init failed");
-        return -1;
-    }
+    // set ANT_PIN as output
+    DDRB |= (1 << ANT_PIN);
 
     send(1, 0, 0, 6);
 
