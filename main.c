@@ -1,6 +1,36 @@
 /*
-    Crude remote control software. Currently receives 8 bits via SPI
-    [rrggddss] = [remote][group][device][state]
+    Crude remote control software for Attiny85 which controls Nexa MYCR-1000 wireless plugs. 
+    Currently receives 8 bits via SPI
+        [rrggddss]
+        rr: remote
+        gg: group
+        dd: device
+        ss: state  
+
+    TODO: add support for resetting the plug
+    TODO: add support for 4^13 different remotes 
+    -> maybe receive 5 bytes?
+        [0000R000]
+        [rrrrrrrr]
+        [rrrrrrrr]
+        [rrrrrrrr]
+        [rrggddss] 
+      where 
+        R: if 1 reset the plug
+        r: remote id
+        g: group
+        d: device
+        s: state
+
+    OR use hardcoded remote and receive 2 bytes
+        [1111Riii]
+        [00ggddss]
+      where
+        R: if 1 reset the plug
+        i: ID for hardcoded remote
+        g: group
+        d: device
+        s: state
 
     Pinout
     RPI | Attiny 
@@ -33,6 +63,8 @@
 
 // payload consists of these bytes
 const uint8_t byte[4][4] = {{0, 1, 0, 1}, {0, 1, 1, 0}, {1, 0, 0, 1}, {1, 0, 1, 0}};
+// hardcoded remote
+uint8_t remote_id[13] = {2, 0, 1, 2, 2, 0, 0, 0, 0, 2, 2, 2, 2};
 
 /*
     sends a single bit
@@ -71,27 +103,26 @@ void send_byte(const uint8_t* byte)
 }
 
 /*
-    send payload based on state, device id, group. repeats n times
-    TODO: different remotes 
+    send payload: [remote id][state][group][device id]. Repeats REPEAT times
 */
-void send(uint8_t state, uint8_t id, uint8_t group, uint8_t remote)
+void send(uint8_t state, uint8_t device, uint8_t group, uint8_t remote)
 {
-    // 1001 [11 bytes for remote id] 1001
-    const uint8_t initial_bytes[13] = {2, 0, 1, 2, 2, 0, 0, 0, 0, 2, 2, 2, 2};
+    // TODO: this is a crude hack
+    remote_id[1] = remote & 3;
 
     for (uint8_t i = 0; i < REPEAT; i++)
     {
         // init bit
         send_bit(-1);
 
-        // remote id etc
+        // remote id
         for (uint8_t i = 0; i < 13; i++)
-            send_byte(byte[initial_bytes[i]]);
+            send_byte(byte[remote_id[i]]);
 
         // payload bytes
         send_byte(byte[state & 3]);
         send_byte(byte[group & 3]);
-        send_byte(byte[id & 3]);
+        send_byte(byte[device & 3]);
 
         // end
         PORTB |= (1 << ANT_PIN);
