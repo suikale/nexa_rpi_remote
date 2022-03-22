@@ -178,11 +178,6 @@ void send(uint8_t state, uint8_t device, uint8_t group, uint8_t remote)
     }
 }
 
-void stop_timer()
-{
-    TIMSK ^= (1<<TOIE0); // disable timer0 interrupt
-}
-
 /*
     triggers an interrupt after timer runs out
     255 * (1/8000000) * 1024 = 0.03264 seconds
@@ -190,9 +185,13 @@ void stop_timer()
 void start_timer()
 {   
     TCNT0 = 0xff;  // set timer value to 255
-    TIMSK |= (1<<TOIE0); // enable timer0 interrupt
+    TIMSK |= (1 << TOIE0); // enable timer0 interrupt
 }
 
+void stop_timer()
+{
+    TIMSK &= ~(1 << TOIE0); // disable timer0 interrupt
+}
 
 /*
     handles the values in buffer
@@ -270,7 +269,7 @@ void setup()
 
     // timer
     TCCR0A = 0; // COM0{A,B}{0,1} = 0, normal operation    
-    TCCR0B = 0|(1<<CS00)|(1<<CS02); // prescaler: 1024
+    TCCR0B = 0 | (1 << CS00) | (1 << CS02); // prescaler: 1024
 
     sei(); // enable global interrupts
 }
